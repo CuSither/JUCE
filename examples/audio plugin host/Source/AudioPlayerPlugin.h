@@ -73,6 +73,7 @@ private:
 	AudioFormatManager formatManager;
 	CriticalSection stateLock;
 
+	bool setPreferredBusArrangement(bool, int, const AudioChannelSet&);
 	virtual void prepareToPlay(double, int) override;
 	virtual void releaseResources() override;
 

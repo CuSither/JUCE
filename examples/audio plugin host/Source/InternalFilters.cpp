@@ -25,7 +25,7 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "InternalFilters.h"
 #include "FilterGraph.h"
-
+#include "AudioPlayerPlugin.h"
 
 //==============================================================================
 InternalPluginFormat::InternalPluginFormat()
@@ -44,6 +44,12 @@ InternalPluginFormat::InternalPluginFormat()
         AudioProcessorGraph::AudioGraphIOProcessor p (AudioProcessorGraph::AudioGraphIOProcessor::midiInputNode);
         p.fillInPluginDescription (midiInDesc);
     }
+
+	{
+		AudioPlayerPlugin* p = new AudioPlayerPlugin();
+		p->fillInPluginDescription(fileInDesc);
+		delete p;
+	}
 }
 
 void InternalPluginFormat::createPluginInstance (const PluginDescription& desc,
@@ -62,6 +68,9 @@ void InternalPluginFormat::createPluginInstance (const PluginDescription& desc,
     if (desc.name == midiInDesc.name)
         retval = new AudioProcessorGraph::AudioGraphIOProcessor (AudioProcessorGraph::AudioGraphIOProcessor::midiInputNode);
 
+	if (desc.name == fileInDesc.name)
+		retval = new AudioPlayerPlugin();
+		
     callback (userData, retval, retval == nullptr ? NEEDS_TRANS ("Invalid internal filter name") : String());
 }
 
@@ -77,6 +86,7 @@ const PluginDescription* InternalPluginFormat::getDescriptionFor (const Internal
         case audioInputFilter:      return &audioInDesc;
         case audioOutputFilter:     return &audioOutDesc;
         case midiInputFilter:       return &midiInDesc;
+		case fileInputFilter:		return &fileInDesc;
         default:                    break;
     }
 

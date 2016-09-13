@@ -4,6 +4,10 @@
 //==============================================================================
 AudioPlayerPlugin::AudioPlayerPlugin() : transportState(TransportState::NoFile), readAheadThread("AUDIO_READER")
 {
+	busArrangement.inputBuses.clear();
+	busArrangement.outputBuses.clear();
+	busArrangement.outputBuses.add(AudioProcessorBus("player", AudioChannelSet::stereo()));
+	readAheadThread.startThread(0);
 	formatManager.registerBasicFormats();
 }
 
@@ -12,6 +16,20 @@ AudioPlayerPlugin::~AudioPlayerPlugin()
 }
 
 //==============================================================================
+bool AudioPlayerPlugin::setPreferredBusArrangement(bool isInputBus, int busIdx, const AudioChannelSet& preferredLayout)
+{
+	const int numChannels = preferredLayout.size();
+
+	// accept fixed channels only
+	if (isInputBus && numChannels != getTotalNumInputChannels())
+		return false;
+	if (!isInputBus && numChannels != getTotalNumOutputChannels())
+		return false;
+
+	// when accepting a layout, always fall through to the base class
+	return AudioProcessor::setPreferredBusArrangement(isInputBus, busIdx, preferredLayout);
+}
+
 bool AudioPlayerPlugin::openFile(File file) {
     String* filename = new String(file.getFullPathName());
     if (file.exists()) {
