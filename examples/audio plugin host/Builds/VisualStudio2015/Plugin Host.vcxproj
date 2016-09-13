@@ -129,6 +129,8 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Source\AudioPlayerEditor.cpp"/>
+    <ClCompile Include="..\..\Source\AudioPlayerPlugin.cpp"/>
     <ClCompile Include="..\..\Source\FilterGraph.cpp"/>
     <ClCompile Include="..\..\Source\GraphEditorPanel.cpp"/>
     <ClCompile Include="..\..\Source\HostStartup.cpp"/>
@@ -1704,6 +1706,8 @@
     <ClCompile Include="..\..\JuceLibraryCode\juce_video.cpp"/>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\AudioPlayerEditor.h"/>
+    <ClInclude Include="..\..\Source\AudioPlayerPlugin.h"/>
     <ClInclude Include="..\..\Source\FilterGraph.h"/>
     <ClInclude Include="..\..\Source\GraphEditorPanel.h"/>
     <ClInclude Include="..\..\Source\InternalFilters.h"/>

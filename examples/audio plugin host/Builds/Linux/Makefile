@@ -49,6 +49,8 @@ ifeq ($(CONFIG),Release)
 endif
 
 OBJECTS := \
+  $(OBJDIR)/AudioPlayerEditor_48345205.o \
+  $(OBJDIR)/AudioPlayerPlugin_8de74ccb.o \
   $(OBJDIR)/FilterGraph_62e9c017.o \
   $(OBJDIR)/GraphEditorPanel_3dbd4872.o \
   $(OBJDIR)/HostStartup_5ce96f96.o \
@@ -85,6 +87,16 @@ clean:
 strip:
 	@echo Stripping Plugin Host
 	-@strip --strip-unneeded $(OUTDIR)/$(TARGET)
+
+$(OBJDIR)/AudioPlayerEditor_48345205.o: ../../Source/AudioPlayerEditor.cpp
+	-@mkdir -p $(OBJDIR)
+	@echo "Compiling AudioPlayerEditor.cpp"
+	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
+
+$(OBJDIR)/AudioPlayerPlugin_8de74ccb.o: ../../Source/AudioPlayerPlugin.cpp
+	-@mkdir -p $(OBJDIR)
+	@echo "Compiling AudioPlayerPlugin.cpp"
+	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
 
 $(OBJDIR)/FilterGraph_62e9c017.o: ../../Source/FilterGraph.cpp
 	-@mkdir -p $(OBJDIR)
