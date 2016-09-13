@@ -128,6 +128,14 @@
     </VS2015>
   </EXPORTFORMATS>
   <MAINGROUP id="YdWL7hi7p" name="Plugin Host">
+    <FILE id="mby05Z" name="AudioPlayerEditor.cpp" compile="1" resource="0"
+          file="Source/AudioPlayerEditor.cpp"/>
+    <FILE id="ZiDW65" name="AudioPlayerEditor.h" compile="0" resource="0"
+          file="Source/AudioPlayerEditor.h"/>
+    <FILE id="kN1sXh" name="AudioPlayerPlugin.cpp" compile="1" resource="0"
+          file="Source/AudioPlayerPlugin.cpp"/>
+    <FILE id="pgfnPR" name="AudioPlayerPlugin.h" compile="0" resource="0"
+          file="Source/AudioPlayerPlugin.h"/>
     <FILE id="8tLeuntR4" name="FilterGraph.cpp" compile="1" resource="0"
           file="Source/FilterGraph.cpp"/>
     <FILE id="auGSxnlTU" name="FilterGraph.h" compile="0" resource="0"
