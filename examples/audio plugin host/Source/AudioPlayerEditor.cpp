@@ -235,16 +235,16 @@ void AudioPlayerEditor::buttonClicked (Button* buttonThatWasClicked)
     {
         //[UserButtonCode_playPause] -- add your button handler code here..
 		updateLoopState(repeat->getToggleState());
-		if ((getTransportState() == TransportState::Stopped) || (getTransportState() == TransportState::Paused))
-			changeState(TransportState::Starting);
+		if ((getTransportState() == Stopped) || (getTransportState() == Paused))
+			changeState(Starting);
 		else if (isPlaying())
-			changeState(TransportState::Pausing);
+			changeState(Pausing);
         //[/UserButtonCode_playPause]
     }
     else if (buttonThatWasClicked == stop)
     {
         //[UserButtonCode_stop] -- add your button handler code here..
-		changeState(TransportState::Stopping);
+		changeState(Stopping);
         //[/UserButtonCode_stop]
     }
     else if (buttonThatWasClicked == record)
@@ -296,11 +296,11 @@ void AudioPlayerEditor::buttonClicked (Button* buttonThatWasClicked)
 				{
 					// if Player is active, stop it
 					if (isPlaying()) {
-						changeState(TransportState::Stopping);
-						while (getTransportState() != TransportState::Stopped);
+						changeState(Stopping);
+						while (getTransportState() != Stopped);
 					}
                     // no playing possible during file load
-					changeState(TransportState::NoFile);
+					changeState(NoFile);
 
                     // load the file in the procesor
 					if (!processor.openFile(chooser.getResult(), fileNo)) {
@@ -317,7 +317,7 @@ void AudioPlayerEditor::buttonClicked (Button* buttonThatWasClicked)
 
                     // any file loaded allows playing again
                     if (processor.isReadyToPlay())
-                        changeState(TransportState::Stopped);
+                        changeState(Stopped);
                 }
 			}
 			fileNo++;
@@ -377,9 +377,11 @@ void AudioPlayerEditor::setReadPosition(int64 pos) {
 */
 void AudioPlayerEditor::hideThumbnail(int fileNo)
 {
-    if (fileNo < getNumFiles()) {
-        AudioFileUiBundle *file = audioFiles.getUnchecked(fileNo);
-        file->thumbnail->setVisible(false);
+    if (fileNo < getNumFiles(!processor.hasRecorderFile())) {
+        AudioFileUiBundle *file = audioFiles[fileNo];
+        if (file) {
+            file->thumbnail->setVisible(false);
+        }
     }
 }
 
@@ -389,11 +391,13 @@ void AudioPlayerEditor::hideThumbnail(int fileNo)
 */
 void AudioPlayerEditor::updateThumbnail(int fileNo)
 {
-    if (fileNo < getNumFiles()) {
-        AudioFileUiBundle *file = audioFiles.getUnchecked(fileNo);
-        file->thumbnail->setFile(*processor.getFullPath(fileNo));
-        file->thumbnail->setVisible(true);
-        file->thumbnail->repaint();
+    if (fileNo < getNumFiles(!processor.hasRecorderFile())) {
+        AudioFileUiBundle *file = audioFiles[fileNo];
+        if (file) {
+            file->thumbnail->setFile(*processor.getFullPath(fileNo));
+            file->thumbnail->setVisible(true);
+            file->thumbnail->repaint();
+        }
     }
 }
 
@@ -535,7 +539,7 @@ void AudioPlayerEditor::updatePlayPauseButton(bool play)
     @returns false if there is no recorder
 */
 bool AudioPlayerEditor::isRecording() {
-    return (processor.hasRecorder() && processor.getRecordState() >= TransportState::Stopped);
+    return (processor.hasRecorder() && processor.getRecordState() >= Stopped);
 }
 
 /**
@@ -575,11 +579,11 @@ bool AudioPlayerEditor::toggleRecordState() {
 
     // do nothing when not at the beginning or currently playing or starting/recording and record key pressed
     // (punch-in/out is not suppoerted)
-    if (getCurrentPosition() > 0 || getTransportState() >= TransportState::Paused || processor.getRecordState() >= TransportState::Starting)
+    if (getCurrentPosition() > 0 || getTransportState() >= Paused || processor.getRecordState() >= Starting)
         ;
 
     // file not opened and record key pressed
-    else if (processor.getRecordState() == TransportState::NoFile) {
+    else if (processor.getRecordState() == NoFile) {
         // prepare recording
         ret = prepareRecording();
         // roll back if not successful
@@ -589,7 +593,7 @@ bool AudioPlayerEditor::toggleRecordState() {
 
     // stop and unload for all other cases
     else {
-        ret = processor.changeRecordState(TransportState::Unloading);
+        ret = processor.changeRecordState(Unloading);
         recordingStopped();
     }
 
@@ -624,7 +628,7 @@ bool AudioPlayerEditor::prepareRecording() {
     processor.unloadRecorderFile();
 
     // prepare for recording (open file)
-    return processor.changeRecordState(TransportState::Stopping);
+    return processor.changeRecordState(Stopping);
 }
 
 /**
@@ -705,14 +709,14 @@ void AudioPlayerEditor::timerCallback() {
 		// update button enable status and play/pause bitmap according to transport state
 		switch (state)
 		{
-		case TransportState::NoFile:
+		case NoFile:
 			back->setEnabled(false);
 			playPause->setEnabled(false);
 			stop->setEnabled(false);
 			repeat->setEnabled(false);
 			timeSlider->setEnabled(false);
 			break;
-		case TransportState::Stopped:
+		case Stopped:
 			updatePlayPauseButton(true);
 			playPause->setEnabled(true);
 			stop->setEnabled(false);
@@ -722,14 +726,14 @@ void AudioPlayerEditor::timerCallback() {
 			updateTime();
             repaintThumbnails();
 			break;
-		case TransportState::Playing:
+		case Playing:
 			updatePlayPauseButton(false);
 			stop->setEnabled(true);
             repeat->setEnabled(!isRecording());
             timeSlider->setEnabled(!isRecording());
             back->setEnabled(!isRecording());
 			break;
-		case TransportState::Paused:
+		case Paused:
 			updatePlayPauseButton(true);
 			updateTime();
 			break;
