@@ -4,7 +4,7 @@
 
 SharedResourcePointer<AudioPlayerPluginSharedData> sharedData;
 
-AudioPlayerPlugin::AudioPlayerPlugin() : readAheadThread("AUDIO_READER"), transportState(TransportState::NoFile), AudioPluginInstance(getDefaultBusesProperties())
+AudioPlayerPlugin::AudioPlayerPlugin() : readAheadThread("AUDIO_READER"), transportState(NoFile), AudioPluginInstance(getDefaultBusesProperties())
 {
     readAheadThread.startThread(0);
 	formatManager.registerBasicFormats();
@@ -35,7 +35,9 @@ bool AudioPlayerPlugin::setNumFiles(int num) {
 
     // stop player
     if (getTransportState() > Stopped) {
-        changeState(TransportState::Stopping);
+        changeState(Stopping);
+        while (hasRecorder() && getRecordState() > Stopped)
+            ;
     }
 
     // stop recorder
@@ -240,8 +242,8 @@ bool AudioPlayerPlugin::reloadFile(int fileNo) {
     else {
         bool ret = openFile(File(*name), fileNo);
         // any file loaded allows playing again
-        if (isReadyToPlay())
-            changeState(TransportState::Stopped);
+        if (isReadyToPlay() && transportState < Stopped)
+            changeState(Stopped);
         return ret;
     }
 }
@@ -260,7 +262,7 @@ void AudioPlayerPlugin::unloadRecorderFile() {
 }
 
 /**
-    @returns true if the recorder file was loaded (for playback).
+    @returns true if a recorder is present and the recorder file was loaded (for playback).
 */
 bool AudioPlayerPlugin::hasRecorderFile() {
     if (hasRecorder() && audioFiles.size() == getNumFiles())
@@ -309,7 +311,7 @@ void AudioPlayerPlugin::setRecorder(AudioSlaveRecorderPlugin* rec)
         recorder = rec;
         addBus(false);
         reloadRecorderFile();
-        changeState(TransportState::Stopped);
+        changeState(Stopping);
     }
     else
         recorderKilled();
@@ -323,7 +325,7 @@ void AudioPlayerPlugin::setRecorder(AudioSlaveRecorderPlugin* rec)
 void AudioPlayerPlugin::recorderKilled() {
     unloadRecorderFile();
     recorder = nullptr;
-    changeState(TransportState::Stopped);
+    changeState(Stopping);
     removeBus(false);
 }
 
@@ -501,17 +503,17 @@ void AudioPlayerPlugin::setReadPosition(int64 pos)
 	TransportState previousState(transportState);
 
 	// if playing, request pausing
-	if (transportState > TransportState::Paused) {
-		changeState(TransportState::Pausing);
+	if (transportState > Paused) {
+		changeState(Pausing);
 	}
 
 	const ScopedLock sl(stateLock);
 	setAllReadPositions(pos);
 
-	// resume previous state
-	if (previousState == TransportState::Playing) {
-		changeState(TransportState::Starting);
-	} else if (previousState > TransportState::Paused) {
+	// resume previous state, if it was playing, start anew
+	if (previousState == Playing) {
+		changeState(Starting);
+	} else if (previousState > Paused) {
 		changeState(previousState);
 	}
 }
@@ -521,28 +523,28 @@ void AudioPlayerPlugin::setReadPosition(int64 pos)
 */
 void AudioPlayerPlugin::timerCallback() {
     // switch state requested from UI
-    if (transportState == TransportState::Starting) {
+    if (transportState == Starting) {
         const ScopedLock sl(stateLock);
         // also start recorder
         if (hasRecorder() && recorder->isReadyToRecord())
-            recorder->changeState(TransportState::Starting);
-        changeState(TransportState::Playing);
+            recorder->changeState(Starting);
+        changeState(Playing);
     }
-    if (transportState == TransportState::Stopping) {
+    if (transportState == Stopping) {
         const ScopedLock sl(stateLock);
         // also stop recorder
         if (hasRecorder() && recorder->isReadyToRecord()) {
-            recorder->changeState(TransportState::Unloading);
+            recorder->changeState(Unloading);
         }
         setAllReadPositions(0);
-        changeState(TransportState::Stopped);
+        changeState(Stopped);
     }
-    if (transportState == TransportState::Pausing) {
+    if (transportState == Pausing) {
         const ScopedLock sl(stateLock);
         // also pause recorder
         if (hasRecorder() && recorder->isReadyToRecord())
-            recorder->changeState(TransportState::Pausing);
-        changeState(TransportState::Paused);
+            recorder->changeState(Pausing);
+        changeState(Paused);
     }
 }
 
@@ -553,18 +555,14 @@ void AudioPlayerPlugin::processBlock (AudioSampleBuffer& buffer, MidiBuffer&)
         buffer.clear(i, 0, buffer.getNumSamples());
 
 	// read block, if currently playing
-	if (audioFiles.size() && transportState == TransportState::Playing) {
+	if (audioFiles.size() && transportState == Playing) {
 		const ScopedLock sl(stateLock);
 
         int64 pos = getNextReadPosition();
 
         // stop at the end
         if (pos >= getTotalLength()) {
-            changeState(TransportState::Stopping);
-            // also stop recorder
-            if (hasRecorder() && getRecordState() == TransportState::Recording) {
-                recorder->changeState(TransportState::Unloading);
-            }
+            changeState(Stopping);
         }
         
         int bus= 0;
@@ -616,8 +614,8 @@ void AudioPlayerPlugin::setStateInformation(const void* data, int sizeInBytes) {
                 // cannot check for success here
 				openFile(filename, i);
                 // any file loaded allows playing again
-                if (isReadyToPlay())
-                    changeState(TransportState::Stopped);
+                if (isReadyToPlay() && transportState < Stopped)
+                    changeState(Stopped);
             }
 		}
     }
