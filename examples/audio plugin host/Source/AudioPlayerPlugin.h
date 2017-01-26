@@ -30,7 +30,7 @@ public:
     */
 	class AudioFileBundle {
 	public:
-		AudioFileBundle(AudioFormatReaderSource* source, String* filename) : source(source), filename(filename) {};
+		AudioFileBundle(AudioFormatReaderSource* source, String* filename, bool mute = false) : source(source), filename(filename) {};
         ~AudioFileBundle() {};
 
 	protected:

@@ -641,10 +641,12 @@ void AudioPlayerEditor::recordingStopped() {
     audioInputThumb->setVisible(false);
     updateThumbnail(getNumFiles(true));
 
-    // reload file to allow playback, restore mute status
+    // reload file to allow playback and restore mute state & button state
     processor.reloadRecorderFile(wasMuted);
-    audioFiles[getNumFiles(true)]->muteButton->setToggleState(wasMuted, NotificationType::dontSendNotification);
-    audioFiles[getNumFiles(true)]->muteButton->setEnabled(true);
+    if (audioFiles[getNumFiles(true)]) {
+        audioFiles[getNumFiles(true)]->muteButton->setToggleState(wasMuted, NotificationType::dontSendNotification);
+        audioFiles[getNumFiles(true)]->muteButton->setEnabled(true);
+    }
 }
 
 /**

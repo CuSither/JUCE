@@ -40,11 +40,6 @@ bool AudioPlayerPlugin::setNumFiles(int num) {
             ;
     }
 
-    // stop recorder
-    if (hasRecorder() && getRecordState() > NoFile) {
-        changeRecordState(Unloading);
-    }
-
     // delete unused entries from file list
     while (audioFiles.size() > num + hasRecorderFile()) {
         audioFiles.removeLast();
@@ -52,7 +47,7 @@ bool AudioPlayerPlugin::setNumFiles(int num) {
 
     // add empty/default values for new files if list enlarged
     while (audioFiles.size() < num + hasRecorderFile()) {
-        // if recorder file loaded for playback, always insert second last
+        // if recorder file loaded for playback -> always insert new file second last
         audioFiles.insert(audioFiles.size() - hasRecorderFile(), new AudioFileBundle(nullptr, new String(String::empty)));
     }
 
