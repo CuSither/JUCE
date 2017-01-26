@@ -105,7 +105,7 @@ private:
 
     // some vars to cache internal state
     double previousPos = -1;
-    TransportState oldState = TransportState::NoFile;
+    TransportState oldState = NoFile;
     bool wasRecording = false;
     bool hadRecorder = false;
     int oldNoOfFiles = -1;

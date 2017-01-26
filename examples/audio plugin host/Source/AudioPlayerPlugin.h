@@ -42,7 +42,7 @@ public:
 
 
 	TransportState getTransportState() { return transportState; }
-	bool isPlaying() { return transportState == TransportState::Playing; }
+	bool isPlaying() { return transportState == Playing; }
 
 	AudioFormatReaderSource* getAudioSource(int fileNo) { return ((audioFiles.size()>fileNo) ? audioFiles.getUnchecked(fileNo)->source : nullptr); }
 	const String* getFullPath(int);

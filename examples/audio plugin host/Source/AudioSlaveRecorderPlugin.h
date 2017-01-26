@@ -59,11 +59,11 @@ public:
     /**
         @returns true if file is opened and recording can start immediately.
     */
-    bool isReadyToRecord() { return state >= TransportState::Stopped; }
+    bool isReadyToRecord() { return state >= Stopped; }
     /** 
         @returns true, if any input is currently recorded.
     */
-    bool isRecording() { return state == TransportState::Recording; }
+    bool isRecording() { return state == Recording; }
 
     void addAudioCallback(AudioIODeviceCallback *);
     void removeAudioCallback(AudioIODeviceCallback *);
@@ -77,7 +77,7 @@ protected:
         New transport state will be NoFile (file named, but not opened).
         @param name the filename, including path
     */
-    void setFilename(String* name) { filename = name; changeState(TransportState::NoFile); }
+    void setFilename(String* name) { filename = name; changeState(NoFile); }
 	bool openFileWriter();
 
 private:

@@ -3,7 +3,7 @@
 
 extern SharedResourcePointer<AudioPlayerPluginSharedData> sharedData;
 
-AudioSlaveRecorderPlugin::AudioSlaveRecorderPlugin() : writeThread("AUDIO_RECORDER"), state(TransportState::NoFile)
+AudioSlaveRecorderPlugin::AudioSlaveRecorderPlugin() : writeThread("AUDIO_RECORDER"), state(NoFile)
 {
     BusesLayout layout;
     layout.inputBuses.add(AudioChannelSet::stereo());
@@ -37,7 +37,7 @@ void AudioSlaveRecorderPlugin::processBlock(AudioSampleBuffer& buffer, MidiBuffe
     }
     
     // write audio data, if in recording mode
-    if (state == TransportState::Recording && activeWriter) {
+    if (state == Recording && activeWriter) {
 		const ScopedLock sl(stateLock);
 		activeWriter->write(buffer.getArrayOfReadPointers(), buffer.getNumSamples());
 
@@ -110,16 +110,16 @@ bool AudioSlaveRecorderPlugin::changeState(TransportState newState)
     // state changed?
 	if (newState != state) {
         // should open the file
-        if (state == TransportState::NoFile && newState > TransportState::Unloading) {
+        if (state == NoFile && newState > Unloading) {
 			if (!openFileWriter()) {
 				// error opening file -> back to undefined
 				error = true;
 			}
-            newState = TransportState::Stopped;
+            newState = Stopped;
 		}
 
         // check if file must be open already - could have been done here above!
-		if (state < TransportState::Stopped && newState > TransportState::Stopped) {
+		if (state < Stopped && newState > Stopped) {
 			// no open file, not possible to record
 			error = true;
 		}
@@ -130,30 +130,30 @@ bool AudioSlaveRecorderPlugin::changeState(TransportState newState)
 
             state = newState;
             // delete writer pointer only when file is unloaded
-            if (error || newState <= TransportState::Unloading) {
+            if (error || newState <= Unloading) {
                 activeWriter = nullptr;
             }
 		}
 
 		// delete writer object w/o lock, could take time to flush to disk
-        if (error || newState <= TransportState::Unloading)
+        if (error || newState <= Unloading)
             threadedWriter = nullptr;
 
         // propagate to next state for temporary states and errors
         {
             const ScopedLock sl(stateLock);
 
-            if (newState == TransportState::Stopping)
-                state = TransportState::Stopped;
+            if (newState == Stopping)
+                state = Stopped;
 
-            if (newState == TransportState::Pausing)
-                state = TransportState::Paused;
+            if (newState == Pausing)
+                state = Paused;
 
-            if (newState == TransportState::Starting)
-                state = TransportState::Recording;
+            if (newState == Starting)
+                state = Recording;
 
-            if (error || newState == TransportState::Unloading)
-                state = TransportState::NoFile;
+            if (error || newState == Unloading)
+                state = NoFile;
 
         }
 	}
