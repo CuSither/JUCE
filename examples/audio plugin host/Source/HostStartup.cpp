@@ -113,7 +113,7 @@ public:
             JUCEApplicationBase::quit();
     }
 
-    const String getApplicationName() override       { return "Juce Plug-In Host"; }
+    const String getApplicationName() override       { return "Juce Plug-In Host" + String(ProjectInfo::versionString); }
     const String getApplicationVersion() override    { return ProjectInfo::versionString; }
     bool moreThanOneInstanceAllowed() override       { return true; }
 

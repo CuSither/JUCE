@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="NTe0XB0ij" name="Plugin Host" projectType="guiapp" version="1.0.0"
+<JUCERPROJECT id="NTe0XB0ij" name="Plugin Host" projectType="guiapp" version="1.1.0"
               juceFolder="../../../juce" vstFolderMac="~/SDKs/vstsdk2.4" vstFolderPC="c:\SDKs\vstsdk2.4"
               bundleIdentifier="com.roli.pluginhost" jucerVersion="4.3.0" companyName="ROLI Ltd."
               includeBinaryInAppConfig="1">
@@ -128,6 +128,25 @@
     </VS2015>
   </EXPORTFORMATS>
   <MAINGROUP id="YdWL7hi7p" name="Plugin Host">
+    <FILE id="c2fCit" name="ThumbnailComp.h" compile="0" resource="0" file="Source/ThumbnailComp.h"/>
+    <FILE id="TwAKut" name="PluginSharedData.h" compile="0" resource="0"
+          file="Source/PluginSharedData.h"/>
+    <FILE id="EM67Oj" name="AudioLiveScrollingDisplay.h" compile="0" resource="0"
+          file="Source/AudioLiveScrollingDisplay.h"/>
+    <FILE id="Xt2GQv" name="TransportState.h" compile="0" resource="0"
+          file="Source/TransportState.h"/>
+    <FILE id="VuMF9k" name="AudioPlayerEditor.cpp" compile="1" resource="0"
+          file="Source/AudioPlayerEditor.cpp"/>
+    <FILE id="bhGa7d" name="AudioPlayerEditor.h" compile="0" resource="0"
+          file="Source/AudioPlayerEditor.h"/>
+    <FILE id="v5YQRF" name="AudioPlayerPlugin.cpp" compile="1" resource="0"
+          file="Source/AudioPlayerPlugin.cpp"/>
+    <FILE id="L2YMtv" name="AudioPlayerPlugin.h" compile="0" resource="0"
+          file="Source/AudioPlayerPlugin.h"/>
+    <FILE id="hoVGnt" name="AudioSlaveRecorderPlugin.h" compile="0" resource="0"
+          file="Source/AudioSlaveRecorderPlugin.h"/>
+    <FILE id="A7E5gI" name="AudioSlaveRecoderPlugin.cpp" compile="1" resource="0"
+          file="Source/AudioSlaveRecoderPlugin.cpp"/>
     <FILE id="8tLeuntR4" name="FilterGraph.cpp" compile="1" resource="0"
           file="Source/FilterGraph.cpp"/>
     <FILE id="auGSxnlTU" name="FilterGraph.h" compile="0" resource="0"
