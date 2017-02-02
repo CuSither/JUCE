@@ -30,7 +30,7 @@ public:
     */
 	class AudioFileBundle {
 	public:
-		AudioFileBundle(AudioFormatReaderSource* source, String* filename, bool mute = false) : source(source), filename(filename) {};
+		AudioFileBundle(AudioFormatReaderSource* source, String* filename, bool mute = false) : source(source), filename(filename), mute(mute) {};
         ~AudioFileBundle() {};
 
 	protected:
@@ -77,7 +77,7 @@ public:
 
 	virtual void fillInPluginDescription(PluginDescription &) const override;
 
-	void setMute(bool mute, int fileNo) { audioFiles[fileNo]->mute = mute; }
+    void setMute(bool, int);
     bool isMuted(int fileNo) { if (audioFiles.size() > fileNo) return audioFiles.getUnchecked(fileNo)->mute; else return false; }
     void setRecorder(AudioSlaveRecorderPlugin *);
 	TransportState getRecordState() { return recorder->getState(); }

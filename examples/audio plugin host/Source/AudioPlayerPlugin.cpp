@@ -296,6 +296,17 @@ void AudioPlayerPlugin::fillInPluginDescription(PluginDescription & d) const
 }
 
 /**
+    Mute a file playback. 
+    No effect, if file with this index does not exist/is not loaded.
+    @param mute true to mute
+    @param fileNo index of the file starting from 0
+*/
+void AudioPlayerPlugin::setMute(bool mute, int fileNo) {
+    if (audioFiles[fileNo])
+        audioFiles[fileNo]->mute = mute;
+}
+
+/**
     Set this player to have a recorder connected to it.
     Adds a bus and loads the recorder file for playing, if possible.
     @param rec pointer to the recorder object (giving nullptr is same as calling recorderKilled)
