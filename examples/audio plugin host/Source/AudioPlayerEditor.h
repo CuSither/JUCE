@@ -21,6 +21,22 @@
 #define __JUCE_HEADER_1A069B68023ACEEC__
 
 //[Headers]     -- You can add your own extra header files here --
+/*
+==============================================================================
+
+This file is part of JUCE examples from https://github.com/harry-g.
+Copyright (c) 2017 Harry G.
+
+Permission is granted to use this software under the terms of the GPL v2 (or any later version)
+
+Details of these licenses can be found at: www.gnu.org/licenses
+
+JUCE examples are distributed in the hope that they will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+==============================================================================
+*/
 #include "JuceHeader.h"
 #include "AudioPlayerPlugin.h"
 
