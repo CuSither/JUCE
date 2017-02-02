@@ -312,6 +312,9 @@ void AudioPlayerEditor::buttonClicked (Button* buttonThatWasClicked)
                     // update filename & thumbnail, also after error (sets it empty)
                     updateFilename(fileNo);
                     updateThumbnail(fileNo);
+                    // reset mute state and enable button
+                    file->muteButton->setToggleState(false, dontSendNotification);
+                    file->muteButton->setEnabled(true);
 
                     updateLoopState(repeat->getToggleState());
 
@@ -417,7 +420,7 @@ void AudioPlayerEditor::updateFilename(int fileNo)
 {
     if (fileNo < getNumFiles()) {
         AudioFileUiBundle *file = audioFiles.getUnchecked(fileNo);
-        file->filename->setText(*processor.getFilename(fileNo), NotificationType::dontSendNotification);
+        file->filename->setText(*processor.getFilename(fileNo), dontSendNotification);
     }
 }
 
@@ -464,7 +467,7 @@ void AudioPlayerEditor::updateUiLayout()
 
     // restore loop status
     if (processor.isLooping())
-        repeat->setToggleState(true, NotificationType::dontSendNotification);
+        repeat->setToggleState(true, dontSendNotification);
 
     // number of files changed
     if (getNumFiles() != oldNoOfFiles || audioFiles.size() != getNumFiles()) {
@@ -496,10 +499,6 @@ void AudioPlayerEditor::updateUiLayout()
 			filename->setEditable(false, false, false);
 			filename->setColour(TextEditor::textColourId, Colours::black);
 			filename->setColour(TextEditor::backgroundColourId, Colour(0x00000000));
-            const String* name = processor.getFilename(i);
-            if (name->isEmpty())
-                name = &NO_FILE;
-			filename->setText(*name, NotificationType::dontSendNotification);
 
 			ThumbnailComp* thumbnail;
 			addAndMakeVisible(thumbnail = new ThumbnailComp(formatManager, *this, *zoomSlider.get()));
@@ -511,7 +510,16 @@ void AudioPlayerEditor::updateUiLayout()
 			muteButton->addListener(this);
             muteButton->setClickingTogglesState(true);
             // restore mute status
-            muteButton->setToggleState(processor.isMuted(i), NotificationType::dontSendNotification);
+            muteButton->setToggleState(processor.isMuted(i), dontSendNotification);
+
+            // set file name
+            const String* name = processor.getFilename(i);
+            if (name->isEmpty()) {
+                name = &NO_FILE;
+                // mute button makes no sense
+                muteButton->setEnabled(false);
+            }
+            filename->setText(*name, dontSendNotification);
 
 			audioFiles.add(new AudioFileUiBundle(openFile, filename, thumbnail, muteButton));
 		}
@@ -621,7 +629,7 @@ bool AudioPlayerEditor::prepareRecording() {
 
     // keep mute status for later, unmute recording channel
     wasMuted = audioFiles[getNumFiles(true)]->muteButton->getToggleState();
-    audioFiles[getNumFiles(true)]->muteButton->setToggleState(false, NotificationType::dontSendNotification);
+    audioFiles[getNumFiles(true)]->muteButton->setToggleState(false, dontSendNotification);
     audioFiles[getNumFiles(true)]->muteButton->setEnabled(false);
 
     // unload recorder file from player to allow overwriting
@@ -644,7 +652,7 @@ void AudioPlayerEditor::recordingStopped() {
     // reload file to allow playback and restore mute state & button state
     processor.reloadRecorderFile(wasMuted);
     if (audioFiles[getNumFiles(true)]) {
-        audioFiles[getNumFiles(true)]->muteButton->setToggleState(wasMuted, NotificationType::dontSendNotification);
+        audioFiles[getNumFiles(true)]->muteButton->setToggleState(wasMuted, dontSendNotification);
         audioFiles[getNumFiles(true)]->muteButton->setEnabled(true);
     }
 }
