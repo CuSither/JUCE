@@ -400,6 +400,7 @@ void AudioPlayerEditor::hideThumbnail(int fileNo)
         AudioFileUiBundle *file = audioFiles[fileNo];
         if (file) {
             file->thumbnail->setVisible(false);
+            file->thumbnail->setFile("");
         }
     }
 }
@@ -661,15 +662,15 @@ bool AudioPlayerEditor::prepareRecording() {
     - show audio thumbnail
 */
 void AudioPlayerEditor::recordingStopped() {
-    // hide audio input, show file thumbnail
+    // hide audio input
     audioInputThumb->setVisible(false);
-    updateThumbnail(getNumFiles(true));
 
-    // reload file to allow playback and restore mute state & button state
+    // reload file to allow playback and restore mute state & button state, show file thumbnail
     processor.reloadRecorderFile(wasMuted);
     if (audioFiles[getNumFiles(true)]) {
         audioFiles[getNumFiles(true)]->muteButton->setToggleState(wasMuted, dontSendNotification);
         audioFiles[getNumFiles(true)]->muteButton->setEnabled(true);
+        updateThumbnail(getNumFiles(true));
     }
 }
 
