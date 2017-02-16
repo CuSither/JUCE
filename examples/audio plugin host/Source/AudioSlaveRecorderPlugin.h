@@ -111,8 +111,6 @@ private:
 
     Array<AudioIODeviceCallback*> audioCallbacks;
     
-    AudioSlaveRecorderPlugin **externalReference = nullptr;
-
     bool isBusesLayoutSupported(const BusesLayout& layouts) const override;
 
     // unused methods

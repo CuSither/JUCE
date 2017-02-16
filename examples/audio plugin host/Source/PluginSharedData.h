@@ -52,6 +52,14 @@ protected:
     }
 
     /**
+        Check if a recorder is registered
+        @returns true if there is a recorder
+    */
+    bool hasRecorder() {
+        return recorder != nullptr;
+    }
+
+    /**
         Call this if the player is created.
     */
     void setPlayer(AudioPlayerPlugin* pl) {
@@ -71,12 +79,20 @@ protected:
         setPlayer(nullptr);
     }
 
+    /**
+        Check if a player is registered
+        @returns true if there is a player
+    */
+    bool hasPlayer() {
+        return player != nullptr;
+    }
+
 private:
     AudioPlayerPlugin* player = nullptr;
     AudioSlaveRecorderPlugin* recorder = nullptr;
 
     /**
-        Notifies the player if there is any news about a recorder.
+        Notifies the player once there is any news about a recorder.
     */
     void notifyPlayer() {
         if (player != nullptr) {
