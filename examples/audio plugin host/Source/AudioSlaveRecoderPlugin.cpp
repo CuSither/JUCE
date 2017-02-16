@@ -66,7 +66,7 @@ void AudioSlaveRecorderPlugin::fillInPluginDescription(PluginDescription & d) co
 	d.uid = d.name.hashCode();
 	d.category = "Output devices";
 	d.pluginFormatName = "Internal";
-	d.manufacturerName = "youdisc.com";
+	d.manufacturerName = "mycompany.com";
 	d.version = "1.0";
 	d.isInstrument = false;
 	d.numInputChannels = getNumInputChannels();
