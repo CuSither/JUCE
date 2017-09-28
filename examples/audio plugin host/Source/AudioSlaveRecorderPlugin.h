@@ -19,6 +19,7 @@ A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
 #include "JuceHeader.h"
 #include "TransportState.h"
+#include "PluginSharedData.h"
 
 /**
     Recorder for the AudioPlayerPlugin which is used as InternalFilter for the Plugin Host.
@@ -32,6 +33,8 @@ class AudioSlaveRecorderPlugin : public AudioPluginInstance
 public:
 	AudioSlaveRecorderPlugin();
 	~AudioSlaveRecorderPlugin();
+
+    void setSharedData(AudioPlayerPluginSharedData*);
 
 	void processBlock(AudioSampleBuffer& buffer, MidiBuffer&) override;
 
@@ -110,7 +113,9 @@ private:
 	TransportState state;
 
     Array<AudioIODeviceCallback*> audioCallbacks;
-    
+
+    AudioPlayerPluginSharedData* sharedData = nullptr;
+
     bool isBusesLayoutSupported(const BusesLayout& layouts) const override;
 
     // unused methods

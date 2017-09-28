@@ -7,7 +7,7 @@
   the "//[xyz]" and "//[/xyz]" sections will be retained when the file is loaded
   and re-saved.
 
-  Created with Projucer version: 4.3.0
+  Created with Projucer version: 5.0.1
 
   ------------------------------------------------------------------------------
 
@@ -106,7 +106,7 @@ AudioPlayerEditor::AudioPlayerEditor (AudioPlayerPlugin &processor)
 
     addAndMakeVisible (timeLabel = new Label ("timeLabel",
                                               String()));
-    timeLabel->setFont (Font (Font::getDefaultSansSerifFontName(), 18.00f, Font::plain));
+    timeLabel->setFont (Font (Font::getDefaultSansSerifFontName(), 18.00f, Font::plain).withTypefaceStyle ("Regular"));
     timeLabel->setJustificationType (Justification::centredLeft);
     timeLabel->setEditable (false, false, false);
     timeLabel->setColour (TextEditor::textColourId, Colours::black);
@@ -129,7 +129,7 @@ AudioPlayerEditor::AudioPlayerEditor (AudioPlayerPlugin &processor)
 
     addAndMakeVisible (zoomLabel = new Label ("zoomLabel",
                                               TRANS("Zoom")));
-    zoomLabel->setFont (Font (15.00f, Font::plain));
+    zoomLabel->setFont (Font (15.00f, Font::plain).withTypefaceStyle ("Regular"));
     zoomLabel->setJustificationType (Justification::centredLeft);
     zoomLabel->setEditable (false, false, false);
     zoomLabel->setColour (TextEditor::textColourId, Colours::black);
@@ -161,7 +161,9 @@ AudioPlayerEditor::AudioPlayerEditor (AudioPlayerPlugin &processor)
 AudioPlayerEditor::~AudioPlayerEditor()
 {
     //[Destructor_pre]. You can add your own custom destruction code here..
-	stopTimer();
+    stopTimer();
+    while(isTimerRunning());
+
     //[/Destructor_pre]
 
     back = nullptr;
@@ -451,6 +453,8 @@ void AudioPlayerEditor::updateFilename(int fileNo)
     @see        AudioPlayerPlugin::getNumFiles
 */
 int AudioPlayerEditor::getNumFiles(bool playbackOnly) {
+    const ScopedLock lo(layoutLock);
+
 	return processor.getNumFiles(playbackOnly);
 }
 
@@ -480,24 +484,29 @@ unsigned AudioPlayerEditor::getFileLineHeight() {
 */
 void AudioPlayerEditor::updateUiLayout()
 {
-    record->setVisible(processor.hasRecorder());
+    bool hasRecorder = processor.hasRecorder();
+    record->setVisible(hasRecorder);
 
     // restore loop status
     if (processor.isLooping())
         repeat->setToggleState(true, dontSendNotification);
+    
+    int numFiles = getNumFiles();
 
     // number of files changed
-    if (getNumFiles() != oldNoOfFiles || audioFiles.size() != getNumFiles()) {
-
-        setSize(getLocalBounds().getWidth(), (Y_OFFSET + getNumFiles() * getFileLineHeight()));
+    if (isVisible() && (numFiles != oldNoOfFiles || audioFiles.size() != numFiles)) {
+        Logger::outputDebugString("Updating UI layout");
+        const ScopedLock lo(layoutLock);
 
         fileUiInitialized = false;
         audioFiles.clear();
 
+        setSize(getLocalBounds().getWidth(), (Y_OFFSET + numFiles * getFileLineHeight()));
+
         // recreate entire file UIs
-		for (int i = 0; i < getNumFiles(); i++) {
+		for (int i = 0; i < numFiles; i++) {
 			// fileindex == number of playback files -> this must be the recorder
-			bool recorder = (i == getNumFiles(true));
+			bool recorder = (i == (numFiles - hasRecorder));
 
 			ImageButton* openFile;
 			addAndMakeVisible(openFile = new ImageButton("openFile"));
@@ -544,7 +553,7 @@ void AudioPlayerEditor::updateUiLayout()
 		resized();
         repaint();
     }
-	oldNoOfFiles = getNumFiles();
+	oldNoOfFiles = numFiles;
 }
 
 /**
@@ -731,42 +740,46 @@ void AudioPlayerEditor::timerCallback() {
     // transport state changed
 	if (state != oldState)
 	{
-		oldState = state;
+        const ScopedLock lo(layoutLock); 
+        
+        oldState = state;
 
-		// update button enable status and play/pause bitmap according to transport state
-		switch (state)
-		{
-		case NoFile:
-			back->setEnabled(false);
-			playPause->setEnabled(false);
-			stop->setEnabled(false);
-			repeat->setEnabled(false);
-			timeSlider->setEnabled(false);
-			break;
-		case Stopped:
-			updatePlayPauseButton(true);
-			playPause->setEnabled(true);
-			stop->setEnabled(false);
-			back->setEnabled(false);
-			repeat->setEnabled(true);
-			timeSlider->setEnabled(true);
-			updateTime();
-            repaintThumbnails();
-			break;
-		case Playing:
-			updatePlayPauseButton(false);
-			stop->setEnabled(true);
-            repeat->setEnabled(!isRecording());
-            timeSlider->setEnabled(!isRecording());
-            back->setEnabled(!isRecording());
-			break;
-		case Paused:
-			updatePlayPauseButton(true);
-			updateTime();
-			break;
-        default:
-            break;
-		}
+        if (fileUiInitialized) {
+            // update button enable status and play/pause bitmap according to transport state
+            switch (state)
+            {
+            case NoFile:
+                back->setEnabled(false);
+                playPause->setEnabled(false);
+                stop->setEnabled(false);
+                repeat->setEnabled(false);
+                timeSlider->setEnabled(false);
+                break;
+            case Stopped:
+                updatePlayPauseButton(true);
+                playPause->setEnabled(true);
+                stop->setEnabled(false);
+                back->setEnabled(false);
+                repeat->setEnabled(true);
+                timeSlider->setEnabled(true);
+                updateTime();
+                repaintThumbnails();
+                break;
+            case Playing:
+                updatePlayPauseButton(false);
+                stop->setEnabled(true);
+                repeat->setEnabled(!isRecording());
+                timeSlider->setEnabled(!isRecording());
+                back->setEnabled(!isRecording());
+                break;
+            case Paused:
+                updatePlayPauseButton(true);
+                updateTime();
+                break;
+            default:
+                break;
+            }
+        }
 	}
 
 	bool hasRecorder = processor.hasRecorder();
@@ -830,7 +843,7 @@ BEGIN_JUCER_METADATA
          virtualName="" explicitFocusOrder="0" pos="648 40 72 24" edTextCol="ff000000"
          edBkgCol="0" labelText="" editableSingleClick="0" editableDoubleClick="0"
          focusDiscardsChanges="0" fontname="Default sans-serif font" fontsize="18"
-         bold="0" italic="0" justification="33"/>
+         kerning="0" bold="0" italic="0" justification="33"/>
   <IMAGEBUTTON name="record" id="65adc4db1b11afcd" memberName="record" virtualName=""
                explicitFocusOrder="0" pos="158 8 40 24" buttonText="" connectedEdges="0"
                needsCallback="1" radioGroupId="0" keepProportions="1" resourceNormal="reclightred_png"
@@ -845,7 +858,7 @@ BEGIN_JUCER_METADATA
          virtualName="" explicitFocusOrder="0" pos="648 8 53 24" edTextCol="ff000000"
          edBkgCol="0" labelText="Zoom" editableSingleClick="0" editableDoubleClick="0"
          focusDiscardsChanges="0" fontname="Default font" fontsize="15"
-         bold="0" italic="0" justification="33"/>
+         kerning="0" bold="0" italic="0" justification="33"/>
   <TEXTBUTTON name="repeat" id="d0e28cd35acebf04" memberName="repeat" virtualName=""
               explicitFocusOrder="0" pos="208 8 60 24" textColOn="ff808080"
               buttonText="repeat" connectedEdges="0" needsCallback="1" radioGroupId="0"/>

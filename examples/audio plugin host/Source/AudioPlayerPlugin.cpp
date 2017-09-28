@@ -16,26 +16,35 @@ A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 */
 #include "AudioPlayerPlugin.h"
 #include "AudioPlayerEditor.h"
-#include "PluginSharedData.h"
-
-SharedResourcePointer<AudioPlayerPluginSharedData> sharedData;
 
 AudioPlayerPlugin::AudioPlayerPlugin() : readAheadThread("AUDIO_READER"), transportState(NoFile), AudioPluginInstance(getDefaultBusesProperties())
 {
     readAheadThread.startThread(0);
-	formatManager.registerBasicFormats();
+    formatManager.registerBasicFormats();
     setNumFiles(1);
     addBus(false);
     startTimer(STATE_TIMER_MS);
-    // register player to get notified about recorder creation/deletion
-    sharedData->setPlayer(this);
 }
 
 AudioPlayerPlugin::~AudioPlayerPlugin()
 {
+    readAheadThread.stopThread(500);
     stopTimer();
+    while (isTimerRunning());
+
     // unregister
-    sharedData->playerKilled();
+    if (sharedData) 
+        sharedData->playerKilled();
+}
+
+/**
+    Set shared data class for exchange with recorder
+*/
+void AudioPlayerPlugin::setSharedData(AudioPlayerPluginSharedData* shared)
+{
+    sharedData = shared;
+    // register player to get notified about recorder creation/deletion
+    sharedData->setPlayer(this);
 }
 
 /**
@@ -57,14 +66,18 @@ bool AudioPlayerPlugin::setNumFiles(int num) {
     }
 
     // delete unused entries from file list
-    while (audioFiles.size() > num + hasRecorderFile()) {
-        audioFiles.removeLast();
-    }
+    {
+        const ScopedLock afl(audioFileLock);
+        while (audioFiles.size() > num + hasRecorderFile()) {
+            audioFiles.removeLast();
+            removeBus(false);
+        }
 
-    // add empty/default values for new files if list enlarged
-    while (audioFiles.size() < num + hasRecorderFile()) {
-        // if recorder file loaded for playback -> always insert new file second last
-        audioFiles.insert(audioFiles.size() - hasRecorderFile(), new AudioFileBundle(nullptr, new String(String::empty)));
+        // add empty/default values for new files if list enlarged
+        while (audioFiles.size() < num + hasRecorderFile()) {
+            // if recorder file loaded for playback -> always insert new file second last
+            audioFiles.insert(audioFiles.size() - hasRecorderFile(), new AudioFileBundle(nullptr, new String(String::empty)));
+        }
     }
 
     numFiles = num;
@@ -148,6 +161,8 @@ bool AudioPlayerPlugin::canApplyBusCountChange(bool isInput, bool isAddingBuses,
 */
 bool AudioPlayerPlugin::openFile(File file, int fileNo) {
 
+    const ScopedLock afl(audioFileLock);
+    
     // invalid index (including recorder)
     if (fileNo >= getNumFiles())
         return false;
@@ -263,6 +278,8 @@ bool AudioPlayerPlugin::reloadFile(int fileNo) {
     Unloads the recorder file, usually to overwrite it.
 */
 void AudioPlayerPlugin::unloadRecorderFile() {
+    const ScopedLock afl(audioFileLock);
+
     // if recorder file was loaded for playback
     if (hasRecorderFile()) {
         if (audioFiles.getUnchecked(audioFiles.size() - 1)->source)
@@ -276,6 +293,8 @@ void AudioPlayerPlugin::unloadRecorderFile() {
     @returns true if a recorder is present and the recorder file was loaded (for playback).
 */
 bool AudioPlayerPlugin::hasRecorderFile() {
+    const ScopedLock afl(audioFileLock);
+
     if (hasRecorder() && audioFiles.size() == getNumFiles())
         return true;
 
@@ -284,6 +303,8 @@ bool AudioPlayerPlugin::hasRecorderFile() {
 
 void AudioPlayerPlugin::prepareToPlay(double samples, int estimatedSamplesPerBlock)
 {
+    const ScopedLock afl(audioFileLock);
+
     // just call it for all files
 	for (const auto& file : audioFiles)
 		if (file->source)
@@ -292,6 +313,8 @@ void AudioPlayerPlugin::prepareToPlay(double samples, int estimatedSamplesPerBlo
 
 void AudioPlayerPlugin::releaseResources()
 {
+    const ScopedLock afl(audioFileLock);
+
     // just call it for all files
     for (const auto& file : audioFiles)
         if (file->source)
@@ -318,6 +341,8 @@ void AudioPlayerPlugin::fillInPluginDescription(PluginDescription & d) const
     @param fileNo index of the file starting from 0
 */
 void AudioPlayerPlugin::setMute(bool mute, int fileNo) {
+    const ScopedLock afl(audioFileLock);
+
     if (audioFiles[fileNo])
         audioFiles[fileNo]->mute = mute;
 }
@@ -390,6 +415,8 @@ void AudioPlayerPlugin::setPosition(double pos)
     @returns read position in samples, 0 if no file or error
 */
 int64 AudioPlayerPlugin::getNextReadPosition() const {
+    const ScopedLock afl(audioFileLock);
+
 	if (audioFiles.size() > longestFile)
         if (audioFiles.getUnchecked(longestFile)->source)
             return audioFiles.getUnchecked(longestFile)->source->getNextReadPosition();
@@ -406,6 +433,8 @@ int64 AudioPlayerPlugin::getNextReadPosition() const {
     @returns    the number of files for playback, by default including the recorder file
 */
 int AudioPlayerPlugin::getNumFiles(bool playbackOnly) {
+    const ScopedLock afl(audioFileLock);
+
     return numFiles + (!playbackOnly && hasRecorder());
 }
 
@@ -414,6 +443,8 @@ int AudioPlayerPlugin::getNumFiles(bool playbackOnly) {
     @param pos position in samples
 */
 void AudioPlayerPlugin::setAllReadPositions(int64 pos) {
+    const ScopedLock afl(audioFileLock);
+
 	for (const auto& file : audioFiles)
         if (file->source)
             file->source->setNextReadPosition(jmin(file->source->getTotalLength() -1, pos));
@@ -424,6 +455,8 @@ void AudioPlayerPlugin::setAllReadPositions(int64 pos) {
     @param shouldLoop true to turn on loop mode
 */
 void AudioPlayerPlugin::setAllLooping(bool shouldLoop) {
+    const ScopedLock afl(audioFileLock);
+
 	for (const auto& file : audioFiles)
         if (file->source)
             file->source->setLooping(shouldLoop);
@@ -433,6 +466,8 @@ void AudioPlayerPlugin::setAllLooping(bool shouldLoop) {
     @returns true if at least one file is in the looping mode
 */
 bool AudioPlayerPlugin::isLooping() {
+    const ScopedLock afl(audioFileLock);
+
     for (const auto& file : audioFiles)
         if (file->source)
             if (file->source->isLooping())
@@ -446,6 +481,8 @@ bool AudioPlayerPlugin::isLooping() {
     I.e. if it has an audio source with length > 0.
 */
 bool AudioPlayerPlugin::isReadyToPlay() {
+    const ScopedLock afl(audioFileLock);
+
     for (const auto& file : audioFiles)
         if (file->source)
             if (file->source->getTotalLength())
@@ -461,10 +498,12 @@ bool AudioPlayerPlugin::isReadyToPlay() {
     @see getLengthInSeconds, processBlock
 */
 void AudioPlayerPlugin::updateTotalLength() {
+    const ScopedLock afl(audioFileLock);
+
 	int fileNo = 0;
     totalLength = 0;
 	for (const auto& file : audioFiles) {
-        if (file->source) {
+        if (file && file->source) {
             int64 len = file->source->getTotalLength();
             if (len > totalLength) {
                 totalLength = len;
@@ -483,14 +522,19 @@ void AudioPlayerPlugin::updateTotalLength() {
 */
 const String* AudioPlayerPlugin::getFullPath(int fileNo)
 {
+    const ScopedLock afl(audioFileLock);
+
 	const String* path;
 
 	if (hasRecorder() && fileNo == getNumFiles(true) && recorder->getFilename() != nullptr)
 		path = recorder->getFilename();
-	else if (audioFiles.size() > fileNo)
+    else if (audioFiles.size() > fileNo)
 		path = audioFiles.getUnchecked(fileNo)->filename;
 	else
 		return &String::empty;
+
+    if (path == nullptr)
+        return &String::empty;
 
 	return path;
 }
@@ -572,6 +616,8 @@ void AudioPlayerPlugin::timerCallback() {
 
 void AudioPlayerPlugin::processBlock (AudioSampleBuffer& buffer, MidiBuffer&)
 {
+    const ScopedLock afl(audioFileLock);
+
     // clear buffer to avoid noise when not playing or not all files present
     for (int i = 0; i < getTotalNumOutputChannels() && i < buffer.getNumChannels(); ++i)
         buffer.clear(i, 0, buffer.getNumSamples());
@@ -607,6 +653,8 @@ void AudioPlayerPlugin::processBlock (AudioSampleBuffer& buffer, MidiBuffer&)
 
 void AudioPlayerPlugin::getStateInformation(MemoryBlock& data) {
 	if (&data) {
+        const ScopedLock afl(audioFileLock);
+
 		MemoryOutputStream stream(data, true);
 
         // save number of files

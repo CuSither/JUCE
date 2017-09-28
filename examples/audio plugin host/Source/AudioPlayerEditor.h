@@ -7,7 +7,7 @@
   the "//[xyz]" and "//[/xyz]" sections will be retained when the file is loaded
   and re-saved.
 
-  Created with Projucer version: 4.3.0
+  Created with Projucer version: 5.0.1
 
   ------------------------------------------------------------------------------
 
@@ -17,8 +17,7 @@
   ==============================================================================
 */
 
-#ifndef __JUCE_HEADER_1A069B68023ACEEC__
-#define __JUCE_HEADER_1A069B68023ACEEC__
+#pragma once
 
 //[Headers]     -- You can add your own extra header files here --
 /*
@@ -119,6 +118,8 @@ private:
 	const unsigned Y_OFFSET = 85; // offset to UI part from Projucer GUI editor
 	const unsigned Y_LINE_HEIGHT = 100; // height of UI for one file
 
+    CriticalSection layoutLock;
+
     // some vars to cache internal state
     double previousPos = -1;
     TransportState oldState = NoFile;
@@ -172,5 +173,3 @@ private:
 
 //[EndFile] You can add extra defines here...
 //[/EndFile]
-
-#endif   // __JUCE_HEADER_1A069B68023ACEEC__

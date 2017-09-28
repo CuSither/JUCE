@@ -67,6 +67,9 @@ public:
 
     ~ThumbnailComp()
     {
+        stopTimer();
+        while (isTimerRunning());
+
         scrollbar.removeListener(this);
         thumbnail.removeChangeListener(this);
     }

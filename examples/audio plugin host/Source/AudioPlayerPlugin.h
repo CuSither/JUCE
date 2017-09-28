@@ -21,11 +21,12 @@ A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 #include "AudioSlaveRecorderPlugin.h"
 #include "TransportState.h"
 #include "AudioLiveScrollingDisplay.h"
+#include "PluginSharedData.h"
 
 /**
     An audio player plugin which is used as InternalFilter for the Plugin Host.
     It can play multiple audio files in parallel.
-    It controls an optional AudioSlaveRecorderPlugin via a SharedResourcePointer<AudioPlayerPluginSharedData>.
+    It controls an optional AudioSlaveRecorderPlugin via a AudioPlayerPluginSharedData.
 
     It is controlled by the UI in the AudioPlayerEditor.
     File number is configuerd via JUCE multibus configuration.
@@ -56,6 +57,7 @@ public:
 		bool mute = false;
 	};
 
+    void setSharedData(AudioPlayerPluginSharedData*);
 
 	TransportState getTransportState() { return transportState; }
 	bool isPlaying() { return transportState == Playing; }
@@ -133,9 +135,10 @@ private:
 	OwnedArray<AudioFileBundle> audioFiles;
 	AudioFormatManager formatManager;
 	AudioSlaveRecorderPlugin* recorder = nullptr;
-	CriticalSection stateLock;
+	CriticalSection stateLock, audioFileLock;
+    AudioPlayerPluginSharedData* sharedData = nullptr;
 
-    static const BusesProperties getDefaultBusesProperties();
+    const BusesProperties getDefaultBusesProperties();
     bool canAddBus(bool) const override;
     bool canRemoveBus(bool) const override;
     void setAllReadPositions(int64);

@@ -17,8 +17,6 @@ A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 #include "AudioSlaveRecorderPlugin.h"
 #include "PluginSharedData.h"
 
-extern SharedResourcePointer<AudioPlayerPluginSharedData> sharedData;
-
 AudioSlaveRecorderPlugin::AudioSlaveRecorderPlugin() : writeThread("AUDIO_RECORDER"), state(NoFile)
 {
     BusesLayout layout;
@@ -28,9 +26,6 @@ AudioSlaveRecorderPlugin::AudioSlaveRecorderPlugin() : writeThread("AUDIO_RECORD
 
 	formatManager.registerBasicFormats();
     writeThread.startThread();
-
-    // register at shared data for control from AudioPlayerPlugin
-    sharedData->setRecorder(this);
 }
 
 AudioSlaveRecorderPlugin::~AudioSlaveRecorderPlugin()
@@ -39,8 +34,20 @@ AudioSlaveRecorderPlugin::~AudioSlaveRecorderPlugin()
         changeState(Unloading);
         while (state != NoFile);
     }
+    writeThread.stopThread(500);
     audioCallbacks.clear();
-    sharedData->recorderKilled();
+    if (sharedData)
+        sharedData->recorderKilled();
+}
+
+/**
+Set shared data class for exchange with recorder
+*/
+void AudioSlaveRecorderPlugin::setSharedData(AudioPlayerPluginSharedData* shared)
+{
+    sharedData = shared;
+    // register player to get notified about recorder creation/deletion
+    sharedData->setRecorder(this);
 }
 
 void AudioSlaveRecorderPlugin::processBlock(AudioSampleBuffer& buffer, MidiBuffer&)
