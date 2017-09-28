@@ -370,6 +370,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Source\PluginSharedData.cpp">
+      <Filter>Plugin Host</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\AudioPlayerEditor.cpp">
       <Filter>Plugin Host</Filter>
     </ClCompile>

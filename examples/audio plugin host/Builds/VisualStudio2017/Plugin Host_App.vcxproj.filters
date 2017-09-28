@@ -370,6 +370,18 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Source\PluginSharedData.cpp">
+      <Filter>Plugin Host</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\AudioPlayerEditor.cpp">
+      <Filter>Plugin Host</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\AudioPlayerPlugin.cpp">
+      <Filter>Plugin Host</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\AudioSlaveRecoderPlugin.cpp">
+      <Filter>Plugin Host</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\FilterGraph.cpp">
       <Filter>Plugin Host</Filter>
     </ClCompile>
@@ -2145,6 +2157,27 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\ThumbnailComp.h">
+      <Filter>Plugin Host</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\PluginSharedData.h">
+      <Filter>Plugin Host</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\AudioLiveScrollingDisplay.h">
+      <Filter>Plugin Host</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\TransportState.h">
+      <Filter>Plugin Host</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\AudioPlayerEditor.h">
+      <Filter>Plugin Host</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\AudioPlayerPlugin.h">
+      <Filter>Plugin Host</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\AudioSlaveRecorderPlugin.h">
+      <Filter>Plugin Host</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\FilterGraph.h">
       <Filter>Plugin Host</Filter>
     </ClInclude>
